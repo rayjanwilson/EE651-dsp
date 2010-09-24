@@ -1,16 +1,31 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+#-*- coding:utf-8 -*-
 
-# open up an asf internal file and save the matrix to matlab format
-# requires an installation of asf mapready to work
+"""
+Open up an asf internal file and save the matrix to matlab format
+Requires an installation of asf mapready to work
+"""
 
+import os
 from struct import unpack
 import mmap
 import scipy.io as sio
 import numpy as np
-import os, sys, re
+import sys
+import re
 from subprocess import *
 import math
 import cmath
+
+__author__ = Rayjan Wilson
+__copyright__ = "Copyright 2010, Rayjan Wilson"
+__credits__ = ""
+__license__ = "GNU GPL"
+__version__= "0.1"
+__maintainer__ = "Rayjan Wilson"
+__email__ = "<rayjan.wilson@alaska.edu>"
+__status__ = "Prototype" #Prototype, Development, Production
+
 
 def runCommand(command):
     try:
@@ -29,13 +44,13 @@ def mmapChannel(arrayName,  fileName,  channelNo,  line_count,  sample_count):
     ASF internal files are packed big endian, but most systems use little endian, so we need
     to make that conversion as well.
     Memory mapping seemd to improve the ingestion speed a bit
-    
+
     to use this you'll need to import:
     from struct import unpack
     import mmap
     """
     with open(fileName, "rb") as f:
-        
+
         # memory-map the file, size 0 means whole file
         #length = line_count * sample_count * arrayName.itemsize
         print "\tMemory Mapping..."
@@ -54,11 +69,11 @@ def mmapChannel(arrayName,  fileName,  channelNo,  line_count,  sample_count):
 
         map.close()
     return arrayName
-    
+
 def saveAsMatlab(array, fileName):
     """
     save a numpy array as a matlab .mat file
-    
+
     to use this you'll need to import:
     import scipy.io as sio
     """
@@ -135,9 +150,9 @@ def rip_asf_to_matlab(workingDir, plrimage, cpu):
     HHphase_orig = HHphase.reshape(line_count, -1)
     HVamp_orig = HVamp.reshape(line_count, -1)
     HVphase_orig = HVphase.reshape(line_count, -1)
-    
+
     shape=HHamp_orig.shape
-    
+
     print "cpu %d: Turning HH and HV into complex images" %cpu
     HHcomplex = np.ones(shape,  dtype='complex64')
     HVcomplex = np.ones(shape,  dtype='complex64')
@@ -145,7 +160,7 @@ def rip_asf_to_matlab(workingDir, plrimage, cpu):
         for j in xrange(sample_count):     #sample_count.... set to 10 for testing
             HHcomplex[i, j] = cmath.rect(HHamp_orig[i, j],  HHphase_orig[i, j])
             HVcomplex[i, j] = cmath.rect(HVamp_orig[i, j],  HVphase_orig[i, j])
-    
+
     print "saving to .mat format for matlab"
     saveAsMatlab(HHamp_orig, 'HHamp_orig')
     saveAsMatlab(HHphase_orig, 'HHphase_orig')
@@ -158,4 +173,21 @@ def rip_asf_to_matlab(workingDir, plrimage, cpu):
 basefolder = os.getcwd()
 #print basefolder
 
-rip_asf_to_matlab(basefolder, 'LED-ALPSRP072797040-H1.1__A', 0)
+if __name__ == '__main__':
+    import optparse
+    #ver='%prog version 0.1'
+    parser = optparse.OptionParser(usage='Usage: %prog <options>', description=__description__, version="%prog version "+__version__)
+    parser.add_option(
+        '-v', '--verbose',
+        dest='verbose',
+        action='count',
+        help="Increase verbosity (specify multiple times for more)"
+    )
+    (opts, args) = parser.parse_args()
+
+else:
+    rip_asf_to_matlab(basefolder, 'LED-ALPSRP072797040-H1.1__A', 0)
+
+
+
+
