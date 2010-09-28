@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 #-*- coding:utf-8 -*-
 
-"""
+__description__ = """
 Open up an asf internal file and save the matrix to matlab format
 Requires an installation of asf mapready to work
 """
@@ -17,7 +17,7 @@ from subprocess import *
 import math
 import cmath
 
-__author__ = Rayjan Wilson
+__author__ = "Rayjan Wilson"
 __copyright__ = "Copyright 2010, Rayjan Wilson"
 __credits__ = ""
 __license__ = "GNU GPL"
@@ -36,6 +36,7 @@ def runCommand(command):
             print >>sys.stderr, "Child returned", retcode
     except OSError, e:
         print >>sys.stderr, "Execution failed:", e
+
 def mmapChannel(arrayName,  fileName,  channelNo,  line_count,  sample_count):
     """
     We need to read in the asf internal file and convert it into a numpy array.
@@ -176,7 +177,7 @@ basefolder = os.getcwd()
 if __name__ == '__main__':
     import optparse
     #ver='%prog version 0.1'
-    parser = optparse.OptionParser(usage='Usage: %prog <options>', description=__description__, version="%prog version "+__version__)
+    parser = optparse.OptionParser(usage='Usage: %prog <options> basefolder', description=__description__, version="%prog version "+__version__)
     parser.add_option(
         '-v', '--verbose',
         dest='verbose',
@@ -184,6 +185,17 @@ if __name__ == '__main__':
         help="Increase verbosity (specify multiple times for more)"
     )
     (opts, args) = parser.parse_args()
+    
+    workingDir = args[0]
+    os.chdir(workingDir)
+
+    for file in os.listdir("."):
+        if re.search('LED-', file):
+            plrimage = file.split("LED-")[1]
+        else:
+            pass
+
+    rip_asf_to_matlab(workingDir, plrimage, 0)
 
 else:
     rip_asf_to_matlab(basefolder, 'LED-ALPSRP072797040-H1.1__A', 0)
