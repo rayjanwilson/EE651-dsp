@@ -1,8 +1,10 @@
-function P_chirp_fft_conj = range_ref_func(sample_count, meta, flag_print)
+function P_chirp_fft_conj = range_ref_func(meta)
 
 % ------------------------------------------------------------------------
 % Range reference function
 % ------------------------------------------------------------------------
+
+sample_count = meta.sample_count;
 
 Tp = meta.Tp;
 alpha = meta.alpha;
@@ -18,7 +20,7 @@ P_chirp_fft_conj = conj(P_chirp_fft);
 %matched_filter = zeros(1, sample_count);
 %matched_filter(1:length(P_chirp_fft_conj)) = P_chirp_fft_conj;
 
-if flag_print == 1
+if meta.flag_print == 1
     figure(1), plot(abs(P_chirp_fft))
 end
 
