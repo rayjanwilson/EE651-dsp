@@ -1,4 +1,4 @@
-function P_chirp_fft_conj = range_ref_func(Tp, alpha, sample_count, flag_print)
+function P_chirp_fft_conj = range_ref_func(Tp, alpha, sample_count, f_rs, flag_print)
 
 % ------------------------------------------------------------------------
 % Range reference function
