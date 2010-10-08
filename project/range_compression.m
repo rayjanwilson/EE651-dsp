@@ -1,4 +1,4 @@
-function Range_compressed_Image = range_compression(L0_image, matched_filter, line_count, flag_print)
+function Range_Compressed_Image = range_compression(L0_image, matched_filter, line_count, flag_print)
 
 % ------------------------------------------------------------------------
 % Range compression
