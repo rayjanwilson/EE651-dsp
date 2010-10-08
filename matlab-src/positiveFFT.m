@@ -1,4 +1,4 @@
-function [X,freq]=positiveFFT_zero_padding(x,Fs)
+function [X,freq]=positiveFFT(x,Fs)
 
 N=4*2^nextpow2(x);
 k=0:N-1;     %create a vector from 0 to N-1

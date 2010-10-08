@@ -59,7 +59,13 @@ def mmapChannel(arrayName,  fileName,  channelNo,  line_count,  sample_count):
         map = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
         map.seek(channelNo*line_count*sample_count*arrayName.itemsize)
 
+        print "arrayName.itemsize: ", arrayName.itemsize
+        #print "mapread: ", map.read(arrayName.itemsize)
+
+        print "total number of bytes: ", line_count*sample_count
         for i in xrange(line_count*sample_count):
+            #if (i%1000 == 0):
+            #    print "i ", i
             arrayName[0, i] = unpack('>f', map.read(arrayName.itemsize) )[0]
 
         #same method as above, just more verbose for the programmer
@@ -87,6 +93,7 @@ def rip_asf_to_matlab(workingDir, plrimage, cpu):
     cmd = "asf_import "+ plrimage + " " + plrimage
     runCommand(cmd)
 
+    band_count = 0
     line_count = 0
     sample_count = 0
     x_pixel_size = 0
@@ -101,6 +108,9 @@ def rip_asf_to_matlab(workingDir, plrimage, cpu):
                 pass
             elif re.search('original_sample_count',  line):
                 pass
+            elif re.search('band_count', line):
+                band_count = int( line.split(" ")[5] )
+                print "band_count: ", band_count
             elif re.search('line_count',  line):
                 #print "I found line_count!"
                 line_count = int( line.split(" ")[5] )
@@ -128,51 +138,80 @@ def rip_asf_to_matlab(workingDir, plrimage, cpu):
             else:
                 pass
 
+    if (band_count == 1):
+        print "Working on band 1"
+        print "cpu %d: Initializing the Amp HH and Phase HH arrays..." %cpu
+        HHamp = np.ones((1,  line_count*sample_count),  dtype='float32')
+        HHphase = np.ones((1,  line_count*sample_count),  dtype='float32')
 
-    print "cpu %d: Initializing the Amp HH HV, and Phase HH HV arrays..." %cpu
-    HHamp = np.ones((1,  line_count*sample_count),  dtype='float32')
-    HHphase = np.ones((1,  line_count*sample_count),  dtype='float32')
-    HVamp = np.ones((1,  line_count*sample_count),  dtype='float32')
-    HVphase = np.ones((1,  line_count*sample_count),  dtype='float32')
+        print "cpu %d: Ingesting HH_Amp..." %cpu
+        HHamp = mmapChannel(HHamp, plrimage_img,  0,  line_count,  sample_count)
+        print "cpu %d: Ingesting HH_phase..." %cpu
+        HHphase = mmapChannel(HHphase, plrimage_img,  1,  line_count,  sample_count)
 
-    print "cpu %d: I think plrimage is: " %cpu,  plrimage
+        print "cpu %d: Reshaping...." %cpu
+        HHamp_orig = HHamp.reshape(line_count, -1)
+        HHphase_orig = HHphase.reshape(line_count, -1)
 
-    print "cpu %d: Ingesting HH_Amp..." %cpu
-    HHamp = mmapChannel(HHamp, plrimage_img,  0,  line_count,  sample_count)
-    print "cpu %d: Ingesting HH_phase..." %cpu
-    HHphase = mmapChannel(HHphase, plrimage_img,  1,  line_count,  sample_count)
-    print "cpu %d: Ingesting HV_AMP..." %cpu
-    HVamp = mmapChannel(HVamp, plrimage_img,  2,  line_count,  sample_count)
-    print "cpu %d: Ingesting HV_phase..." %cpu
-    HVphase = mmapChannel(HVphase, plrimage_img,  3,  line_count,  sample_count)
+        shape=HHamp_orig.shape
 
-    print "cpu %d: Reshaping...." %cpu
-    HHamp_orig = HHamp.reshape(line_count, -1)
-    HHphase_orig = HHphase.reshape(line_count, -1)
-    HVamp_orig = HVamp.reshape(line_count, -1)
-    HVphase_orig = HVphase.reshape(line_count, -1)
+        print "cpu %d: Turning HH into complex images" %cpu
+        HHcomplex = np.ones(shape,  dtype='complex64')
 
-    shape=HHamp_orig.shape
+        for i in xrange(line_count):     #line_count... set to 10 for testing
+            for j in xrange(sample_count):     #sample_count.... set to 10 for testing
+                HHcomplex[i, j] = cmath.rect(HHamp_orig[i, j],  HHphase_orig[i, j])
 
-    print "cpu %d: Turning HH and HV into complex images" %cpu
-    HHcomplex = np.ones(shape,  dtype='complex64')
-    HVcomplex = np.ones(shape,  dtype='complex64')
-    for i in xrange(line_count):     #line_count... set to 10 for testing
-        for j in xrange(sample_count):     #sample_count.... set to 10 for testing
-            HHcomplex[i, j] = cmath.rect(HHamp_orig[i, j],  HHphase_orig[i, j])
-            HVcomplex[i, j] = cmath.rect(HVamp_orig[i, j],  HVphase_orig[i, j])
+        print "saving to .mat format for matlab"
+        saveAsMatlab(HHamp_orig, 'HHamp_orig')
+        saveAsMatlab(HHphase_orig, 'HHphase_orig')
+        saveAsMatlab(HHcomplex, 'HHcomplex')
+    elif (band_count > 1):
+        print "cpu %d: Initializing the Amp HH HV, and Phase HH HV arrays..." %cpu
+        HHamp = np.ones((1,  line_count*sample_count),  dtype='float32')
+        HHphase = np.ones((1,  line_count*sample_count),  dtype='float32')
+        HVamp = np.ones((1,  line_count*sample_count),  dtype='float32')
+        HVphase = np.ones((1,  line_count*sample_count),  dtype='float32')
 
-    print "saving to .mat format for matlab"
-    saveAsMatlab(HHamp_orig, 'HHamp_orig')
-    saveAsMatlab(HHphase_orig, 'HHphase_orig')
-    saveAsMatlab(HVamp_orig, 'HVamp_orig')
-    saveAsMatlab(HVphase_orig, 'HVphase_orig')
-    saveAsMatlab(HHcomplex, 'HHcomplex')
-    saveAsMatlab(HVcomplex, 'HVcomplex')
+        print "cpu %d: I think plrimage is: " %cpu,  plrimage
+
+        print "cpu %d: Ingesting HH_Amp..." %cpu
+        HHamp = mmapChannel(HHamp, plrimage_img,  0,  line_count,  sample_count)
+        print "cpu %d: Ingesting HH_phase..." %cpu
+        HHphase = mmapChannel(HHphase, plrimage_img,  1,  line_count,  sample_count)
+        print "cpu %d: Ingesting HV_AMP..." %cpu
+        HVamp = mmapChannel(HVamp, plrimage_img,  2,  line_count,  sample_count)
+        print "cpu %d: Ingesting HV_phase..." %cpu
+        HVphase = mmapChannel(HVphase, plrimage_img,  3,  line_count,  sample_count)
+
+        print "cpu %d: Reshaping...." %cpu
+        HHamp_orig = HHamp.reshape(line_count, -1)
+        HHphase_orig = HHphase.reshape(line_count, -1)
+        HVamp_orig = HVamp.reshape(line_count, -1)
+        HVphase_orig = HVphase.reshape(line_count, -1)
+
+        shape=HHamp_orig.shape
+
+        print "cpu %d: Turning HH and HV into complex images" %cpu
+        HHcomplex = np.ones(shape,  dtype='complex64')
+        HVcomplex = np.ones(shape,  dtype='complex64')
+        for i in xrange(line_count):     #line_count... set to 10 for testing
+            for j in xrange(sample_count):     #sample_count.... set to 10 for testing
+                HHcomplex[i, j] = cmath.rect(HHamp_orig[i, j],  HHphase_orig[i, j])
+                HVcomplex[i, j] = cmath.rect(HVamp_orig[i, j],  HVphase_orig[i, j])
+
+        print "saving to .mat format for matlab"
+        saveAsMatlab(HHamp_orig, 'HHamp_orig')
+        saveAsMatlab(HHphase_orig, 'HHphase_orig')
+        saveAsMatlab(HVamp_orig, 'HVamp_orig')
+        saveAsMatlab(HVphase_orig, 'HVphase_orig')
+        saveAsMatlab(HHcomplex, 'HHcomplex')
+        saveAsMatlab(HVcomplex, 'HVcomplex')
+    else:
+        pass
 
 
-basefolder = os.getcwd()
-#print basefolder
+
 
 if __name__ == '__main__':
     import optparse
@@ -185,19 +224,23 @@ if __name__ == '__main__':
         help="Increase verbosity (specify multiple times for more)"
     )
     (opts, args) = parser.parse_args()
-    
+
     workingDir = args[0]
     os.chdir(workingDir)
 
     for file in os.listdir("."):
         if re.search('LED-', file):
             plrimage = file.split("LED-")[1]
+        elif re.search('.ldr', file):
+            plrimage = file.split(".ldr")[0]
         else:
             pass
 
     rip_asf_to_matlab(workingDir, plrimage, 0)
 
 else:
+    basefolder = os.getcwd()
+    #print basefolder
     rip_asf_to_matlab(basefolder, 'LED-ALPSRP072797040-H1.1__A', 0)
 
 

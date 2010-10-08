@@ -160,14 +160,15 @@ def rip_asf_to_matlab(workingDir, plrimage, cpu):
         print "cpu %d: Turning HH into complex images" %cpu
         HHcomplex = np.ones(shape,  dtype='complex64')
 
-        for i in xrange(line_count):     #line_count... set to 10 for testing
-            for j in xrange(sample_count):     #sample_count.... set to 10 for testing
-                HHcomplex[i, j] = cmath.rect(HHamp_orig[i, j],  HHphase_orig[i, j])
+        for ii in xrange(line_count):     #line_count... set to 10 for testing
+            for jj in xrange(sample_count):     #sample_count.... set to 10 for testing
+                #HHcomplex[ii, jj] = cmath.rect(HHamp_orig[ii, jj],  HHphase_orig[ii, jj]) #this may be wrong for L0 since it may be packed as real imag, not amp phase
+                HHcomplex[ii, jj] = complex(HHamp_orig[ii,jj], HHphase_orig[ii,jj])
 
         print "saving to .mat format for matlab"
-        saveAsMatlab(HHamp_orig, 'HHamp_orig')
-        saveAsMatlab(HHphase_orig, 'HHphase_orig')
-        saveAsMatlab(HHcomplex, 'HHcomplex')
+        saveAsMatlab(HHamp_orig, 'HHreal')
+        saveAsMatlab(HHphase_orig, 'HHimag')
+        saveAsMatlab(HHcomplex, 'HHcomplex_new')
     elif (band_count > 1):
         print "cpu %d: Initializing the Amp HH HV, and Phase HH HV arrays..." %cpu
         HHamp = np.ones((1,  line_count*sample_count),  dtype='float32')
@@ -244,6 +245,8 @@ else:
     basefolder = os.getcwd()
     #print basefolder
     rip_asf_to_matlab(basefolder, 'LED-ALPSRP072797040-H1.1__A', 0)
+
+
 
 
 
