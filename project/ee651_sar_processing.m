@@ -23,4 +23,4 @@ flag_print = 0;
 
 range_match_filt = range_ref_func(Tp, alpha, sample_count, f_rs, flag_print);
 
-Range_Compressed_Image = range_compression(L0_image, range_match_filt, flag_print);
+Range_Compressed_Image = range_compression(L0_image, range_match_filt, line_count, flag_print);
