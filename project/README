@@ -1,0 +1,17 @@
+This is the project for EE651.
+
+To run you will need matlab installed. Any recent version should work fine.
+
+The main script is ee651_sar_processing.m
+
+At this point you'll have to edit it directly to make it run different processes
+like various azimuth compression routines, etc.
+
+The general procedure is:
+1. Generate the Range Reference Function
+2. Create a matched filter for range compression
+3. Perform Range Compression
+
+4. Generate the Azimuth Reference Function
+5. Create a matched fiter for azimuth compression
+6. Perform Azimuth Compression
