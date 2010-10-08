@@ -1,8 +1,14 @@
-function P_chirp_fft_conj = range_ref_func(Tp, alpha, sample_count, f_rs, flag_print)
+function P_chirp_fft_conj = range_ref_func(sample_count, meta, flag_print)
 
 % ------------------------------------------------------------------------
 % Range reference function
 % ------------------------------------------------------------------------
+
+Tp = meta.Tp;
+alpha = meta.alpha;
+f_rs = meta.f_rs;
+
+
 time = -Tp/2:1/f_rs:Tp/2;         % time 
 p_chirp_signal=exp(j*pi*alpha.*time.^2); % radar chirp signal
 

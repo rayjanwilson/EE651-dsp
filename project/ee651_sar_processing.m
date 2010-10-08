@@ -4,6 +4,11 @@
 % Then calls the different compression routines.
 
 clear all; close all; clc;
+global line_count sample_count;
+global wc w0 Tp alpha prf f_rs v lambda;
+global flag_print;
+
+flag_print = 0;
 
 % ------------------------------------------------------------------------
 % image parameters
@@ -17,10 +22,9 @@ sample_count = 2048;                % number of columns (range)
 load HHcomplex_new.mat;
 L0_image = HHcomplex_new(1:line_count, 1:sample_count);
 clear HHcomplex_new;
-load 'R1_sensor_params.mat'
+%load 'R1_sensor_params.mat'
+meta = R1_sensor_params();
 
-flag_print = 0;
-
-range_match_filt = range_ref_func(Tp, alpha, sample_count, f_rs, flag_print);
+range_match_filt = range_ref_func(sample_count, meta, flag_print);
 
 Range_Compressed_Image = range_compression(L0_image, range_match_filt, line_count, flag_print);
