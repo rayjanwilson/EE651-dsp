@@ -12,5 +12,7 @@ classdef Metadata
         f_rs            % range sampling frequency
         v               % platform velocity [m/s]
         lambda          % carrier freq wavelength
+        r0              % Range to the center of the image [m]
+        ta              % Apertur time [s]
     end
 end
