@@ -12,12 +12,12 @@ meta.flag_print = 0;
 % ------------------------------------------------------------------------
 % image parameters
 % ------------------------------------------------------------------------
-%line_count = 22151;                 % number of rows (azimuth)
-%sample_count = 6354;                % number of columns (range)
+meta.line_count = 22151;                 % number of rows (azimuth)
+meta.sample_count = 6354;                % number of columns (range)
 
 %set smaller for testing
-meta.line_count = 2048;                 % number of rows (azimuth)
-meta.sample_count = 2048;                % number of columns (range)
+%meta.line_count = 2048*2;                 % number of rows (azimuth)
+%meta.sample_count = 2048;                % number of columns (range)
 % ------------------------------------------------------------------------
 
 load HHcomplex_new.mat;
@@ -28,4 +28,16 @@ clear HHcomplex_new;
 
 range_match_filt = range_ref_func(meta);
 Range_Compressed_Image = range_compression(L0_image, range_match_filt, meta);
-azimuth_match_filt = az_ref_func(meta);
+
+clear L0_image;
+
+az_match_filter = az_ref_func(meta);
+Azimuth_Compressed_Image = az_compression2(Range_Compressed_Image, az_match_filter, meta);
+
+clear Range_Compressed_Image;
+
+figure(5), colormap('gray'), imagesc(abs(Azimuth_Compressed_Image)); caxis([0 10000])
+
+H = fspecial('gaussian',[5 5],0.7);
+Y = filter2(H,abs(Azimuth_Compressed_Image'));
+figure(6), imagesc(Y'), colormap('gray'), caxis([0 10000])
