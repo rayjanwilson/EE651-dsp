@@ -4,7 +4,6 @@
 % Then calls the different compression routines.
 
 clear all; close all; clc;
-global line_count sample_count;
 
 meta = R1_sensor_params();
 
