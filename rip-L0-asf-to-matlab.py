@@ -169,6 +169,8 @@ def rip_asf_to_matlab(workingDir, plrimage, cpu):
         saveAsMatlab(HHamp_orig, 'HHreal')
         saveAsMatlab(HHphase_orig, 'HHimag')
         saveAsMatlab(HHcomplex, 'HHcomplex_new')
+        print "saving to .npy format for python"
+        np.save('./HHcomplex_py', HHcomplex)
     elif (band_count > 1):
         print "cpu %d: Initializing the Amp HH HV, and Phase HH HV arrays..." %cpu
         HHamp = np.ones((1,  line_count*sample_count),  dtype='float32')

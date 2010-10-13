@@ -21,7 +21,7 @@ P_chirp_fft_conj = conj(P_chirp_fft);
 %matched_filter(1:length(P_chirp_fft_conj)) = P_chirp_fft_conj;
 
 if meta.flag_print == 1
-    figure(1), plot(abs(P_chirp_fft))
+    figure(1), plot(abs(P_chirp_fft)), title('range_ref_fft')
 end
 
 end
