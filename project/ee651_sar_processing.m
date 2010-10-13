@@ -34,7 +34,7 @@ clear L0_image;
 az_match_filter = az_ref_func(meta);
 Azimuth_Compressed_Image = az_compression2(Range_Compressed_Image, az_match_filter, meta);
 
-%clear Range_Compressed_Image;
+clear Range_Compressed_Image;
 
 figure(5), colormap('gray'), imagesc(abs(Azimuth_Compressed_Image)); caxis([0 10000])
 
