@@ -223,20 +223,48 @@ if __name__ == '__main__':
         action='count',
         help="Increase verbosity (specify multiple times for more)"
     )
+    parser.add_option(
+        '-r', '--recursive',
+        dest='recursive',
+        default=False,
+        action='store_true',
+        help="Recursively search directories and perform conversion"
+    )
     (opts, args) = parser.parse_args()
 
     workingDir = args[0]
     os.chdir(workingDir)
+    basedir = os.getcwd()
 
-    for file in os.listdir("."):
-        if re.search('LED-', file):
-            plrimage = file.split("LED-")[1]
-        elif re.search('.ldr', file):
-            plrimage = file.split(".ldr")[0]
-        else:
-            pass
+    if(opts.recursive): #perform conversion on every LED or .ldr file under this directory
+        print "recursively converting all LED and .ldr files"
+        for root, dirs, files in os.walk(basedir):
+            for file in files:
+                if re.search('LED-', file) or re.search('.ldr', file):
+                    print "%s/%s" % (root, file)
+                    workingDir = root
+                    os.chdir(workingDir)
+                    if re.search('LED-', file):
+                        plrimage = file.split("LED-")[1]
+                        rip_asf_to_matlab(workingDir, plrimage, 0)
+                        print "\tIm in:\t", os.getcwd()
+                        os.chdir(basedir)
+                    elif re.search('.ldr', file):
+                        plrimage = file.split(".ldr")[0]
+                        rip_asf_to_matlab(workingDir, plrimage, 0)
+                        os.chdir(basedir)
 
-    rip_asf_to_matlab(workingDir, plrimage, 0)
+
+    else:   #only work in this directory
+        for file in os.listdir("."):
+            if re.search('LED-', file):
+                plrimage = file.split("LED-")[1]
+                rip_asf_to_matlab(workingDir, plrimage, 0)
+            elif re.search('.ldr', file):
+                plrimage = file.split(".ldr")[0]
+                rip_asf_to_matlab(workingDir, plrimage, 0)
+            else:
+                pass
 
 else:
     basefolder = os.getcwd()
