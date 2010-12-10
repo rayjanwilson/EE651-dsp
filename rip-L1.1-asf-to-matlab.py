@@ -60,7 +60,7 @@ def mmapChannel(arrayName,  fileName,  channelNo,  line_count,  sample_count, da
 
         # memory-map the file, size 0 means whole file
         #length = line_count * sample_count * arrayName.itemsize
-        print "\tMemory Mapping..."
+        print "Memory Mapping..."
 
         map = mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ)
         map.seek(channelNo*line_count*sample_count*arrayName.itemsize)
@@ -68,13 +68,16 @@ def mmapChannel(arrayName,  fileName,  channelNo,  line_count,  sample_count, da
         print "\tarrayName.itemsize: ", arrayName.itemsize
         #print "mapread: ", map.read(arrayName.itemsize)
 
-        print "total number of elements: ", line_count*sample_count
-        for i in xrange(line_count*sample_count):
-            if (i%1000 == 0):
-                print "%s of %s"% (str(i), str(line_count*sample_count) )
-            if(data_type == 'BYTE'):
-                arrayName[0, i] = unpack('>b', map.read(arrayName.itemsize) )[0]
-            else:
+        print "\ttotal number of elements: ", line_count*sample_count
+        if(data_type =='BYTE'):
+            print "\tUnpacking BYTES"
+            for i in xrange(line_count*sample_count):
+                #if (i%100000 == 0):
+                #    print "%s of %s"% (str(i), str(line_count*sample_count) )
+                arrayName[0, i] = unpack('>B', map.read(arrayName.itemsize) )[0]
+        else:
+            print "\tUnpacking FLOATS"
+            for i in xrange(line_count*sample_count):
                 arrayName[0, i] = unpack('>f', map.read(arrayName.itemsize) )[0]
 
         #same method as above, just more verbose for the programmer
@@ -144,15 +147,72 @@ def process_L1(image):
     pass
 def process_L10(image):
     pass
-def process_L11(image):
-    if (band_count == 1):
+def process_L11(image, forceHH):
+    image_img = image + '.img'
+
+    print "asf_import ", image
+    cmd = "asf_import "+ image + " " + image
+    runCommand(cmd)
+
+    data_type = ""
+    band_count = 0
+    line_count = 0
+    sample_count = 0
+    x_pixel_size = 0
+    y_pixel_size = 0
+    center_latitude = 0
+    center_longitude = 0
+    metafile = image + ".meta"
+
+    with open(metafile, "rb") as file:
+        for line in file:
+            if re.search('original_line_count',  line):
+                pass
+            elif re.search('original_sample_count',  line):
+                pass
+            elif re.search(' data_type', line):
+                data_type = line.split(" ")[5]
+                print "data type: ", data_type
+            elif re.search('band_count', line):
+                band_count = int( line.split(" ")[5] )
+                print "band_count: ", band_count
+            elif re.search('line_count',  line):
+                #print "I found line_count!"
+                line_count = int( line.split(" ")[5] )
+                print "Line count: ",  line_count
+            elif re.search('sample_count', line):
+                #print "I found sample_count!"
+                sample_count = int( line.split(" ")[5] )
+                print "Sample count: ",  sample_count
+            elif re.search('x_pixel_size', line):
+                #print "I found sample_count!"
+                x_pixel_size = float( line.split(" ")[5] )
+                print "x_pixel_size: ",  x_pixel_size
+            elif re.search('y_pixel_size', line):
+                #print "I found sample_count!"
+                y_pixel_size = float( line.split(" ")[5] )
+                print "y_pixel_size: ",  y_pixel_size
+            elif re.search('center_latitude', line):
+                #print "I found sample_count!"
+                center_latitude = float( line.split(" ")[5] )
+                print "center_latitude: ",  center_latitude
+            elif re.search('center_longitude', line):
+                #print "I found sample_count!"
+                center_longitude = float( line.split(" ")[5] )
+                print "center_longitude: ",  center_longitude
+            else:
+                pass
+
+    if (band_count == 1 or forceHH==True):
         print "Working on band 1"
+        if(forceHH):
+            print "Only processing HH"
         print "Initializing the Amp HH and Phase HH arrays..."
         HHamp = np.ones((1,  line_count*sample_count),  dtype='float32')
         HHphase = np.ones((1,  line_count*sample_count),  dtype='float32')
 
         print "Ingesting HH_Amp..."
-        HHamp = mmapChannel(HHamp, image_img,  0,  line_count,  sample_count)
+        HHamp = mmapChannel(HHamp, image_img,  0,  line_count,  sample_count, data_type)
 
         print "Reshaping HHamp...."
         HHamp_orig = HHamp.reshape(line_count, -1)
@@ -160,7 +220,7 @@ def process_L11(image):
         saveAsMatlab(HHamp_orig, 'HHamp_orig')
 
         print "Ingesting HH_phase..."
-        HHphase = mmapChannel(HHphase, image_img,  1,  line_count,  sample_count)
+        HHphase = mmapChannel(HHphase, image_img,  1,  line_count,  sample_count, data_type)
         print "Reshaping HHphase..."
         HHphase_orig = HHphase.reshape(line_count, -1)
         print "saving HHphase to .mat format for matlab"
@@ -186,13 +246,13 @@ def process_L11(image):
         print "I think image is: ",  image
 
         print "Ingesting HH_Amp..."
-        HHamp = mmapChannel(HHamp, image_img,  0,  line_count,  sample_count)
+        HHamp = mmapChannel(HHamp, image_img,  0,  line_count,  sample_count, data_type)
         print "Ingesting HH_phase..."
-        HHphase = mmapChannel(HHphase, image_img,  1,  line_count,  sample_count)
+        HHphase = mmapChannel(HHphase, image_img,  1,  line_count,  sample_count, data_type)
         print "Ingesting HV_AMP..."
-        HVamp = mmapChannel(HVamp, image_img,  2,  line_count,  sample_count)
+        HVamp = mmapChannel(HVamp, image_img,  2,  line_count,  sample_count, data_type)
         print "Ingesting HV_phase..."
-        HVphase = mmapChannel(HVphase, image_img,  3,  line_count,  sample_count)
+        HVphase = mmapChannel(HVphase, image_img,  3,  line_count,  sample_count, data_type)
 
         print "Reshaping...."
         HHamp_orig = HHamp.reshape(line_count, -1)
@@ -202,7 +262,7 @@ def process_L11(image):
 
         shape=HHamp_orig.shape
 
-        print "cpu %d: Turning HH and HV into complex images" %cpu
+        print "Turning HH and HV into complex images"
         HHcomplex = np.ones(shape,  dtype='complex64')
         HVcomplex = np.ones(shape,  dtype='complex64')
         for i in xrange(line_count):     #line_count... set to 10 for testing
@@ -277,7 +337,7 @@ def process_LB2(image):
         print "Working on band 1"
         print "Initializing the Amp array..."
         #Amp = np.ones((1,  line_count*sample_count),  dtype='float32')
-        Amp = np.ones((1,  line_count*sample_count),  dtype='b')
+        Amp = np.ones((1,  line_count*sample_count),  dtype='u1')
 
         print "Ingesting Amp..."
         Amp = mmapChannel(Amp, image_img,  0,  line_count,  sample_count, data_type)
@@ -339,7 +399,7 @@ def imageImport(image):
             else:
                 pass
 
-def rip_asf_to_matlab(imageType, image):
+def rip_asf_to_matlab(imageType, forceHH, image):
     if(imageType == 'L0'):
         imageImport(image)
         process_L0(image)
@@ -351,7 +411,7 @@ def rip_asf_to_matlab(imageType, image):
         process_L10(image)
     elif(imageType == 'L1.1'):
         imageImport(image)
-        process_L11(image)
+        process_L11(image, forceHH)
     elif(imageType == 'LB1'):
         print "Unsupported optical image"
     elif((imageType == 'optical') or (imageType == 'LB2')):
@@ -387,6 +447,13 @@ if __name__ == '__main__':
         action='store',
         help="tell it what type of image\nlegacy: L0, L1\nalos palsar: L1.0, L1.1\nalos prism: LB1 LB2\nnote: LB1 is not supported by asf_import and will pass over it"
     )
+    parser.add_option(
+        '-f',
+        dest='forceHH',
+        default=False,
+        action='store_true',
+        help="force only processing of HH"
+    )
     (opts, args) = parser.parse_args()
 
     workingDir = args[0]
@@ -406,12 +473,12 @@ if __name__ == '__main__':
                     os.chdir(workingDir)
                     if re.search('LED-', file):
                         image = file.split("LED-")[1]
-                        rip_asf_to_matlab(opts.type, image)
+                        rip_asf_to_matlab(opts.type, opts.forceHH, image)
                         #print "\tIm in:\t", os.getcwd()
                         os.chdir(basedir)
                     elif re.search('.ldr', file):
                         image = file.split(".ldr")[0]
-                        rip_asf_to_matlab(opts.type, image)
+                        rip_asf_to_matlab(opts.type, opts.forceHH, image)
                         os.chdir(basedir)
 
 

@@ -12,7 +12,7 @@ for k=1:meta.sample_count
     
     if k == 10
         sprintf('%f+j%f ', real(fft_az_sample(1:10)), imag(fft_az_sample(1:10)))
-        figure(2), plot(abs(zw)), title('Az(f) = H(f)X(f)')
+        figure(7), plot(abs(zw), '.'), title('Az(f) = H(f)X(f)')
         size(zw)
         zw(1:5)
 

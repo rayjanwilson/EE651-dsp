@@ -11,6 +11,7 @@ az_motion=zeros(1,2048);
 
 
 time=-ta/2:1/prf:ta/2;
+
 az_chirp=exp(-i.*pi.*fm.*time.^2);
 %az_chirp = exp(-j*pi*(f0^2)/fm);
 
@@ -28,5 +29,7 @@ fourier_az=fft(az_chirp, meta.line_count);
 
 azimuth_match_filter = conj(fourier_az);
 
+figure(10), plot(abs(fourier_az))
+title('az chirp')
 
 end

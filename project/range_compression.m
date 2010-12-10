@@ -14,11 +14,16 @@ for line = 1:meta.line_count
 end
 
 if meta.flag_print == 1
-    figure(2),imagesc(real(Range_Compressed_Image)); colormap('gray');
+    figure(2),imagesc(real(L0_image)); colormap('gray');
+    title('Raw SAR image (real)');
+    xlabel('Range')
+    ylabel('Azimuth')
+    
+    figure(3),imagesc(real(Range_Compressed_Image)); colormap('gray');
     title('Range Compressed Radarsat SAR image (real)');
     ylabel('Azimuth')
     
-    figure(3), imagesc(abs(Range_Compressed_Image)); colormap('gray');
+    figure(4), imagesc(abs(Range_Compressed_Image)); colormap('gray');
     title('Range Compressed Radarsat SAR image (abs)');
     ylabel('Azimuth')
 end

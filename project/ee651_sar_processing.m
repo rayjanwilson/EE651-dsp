@@ -7,7 +7,7 @@ clear all; close all; clc;
 
 meta = R1_sensor_params();
 
-meta.flag_print = 0;
+meta.flag_print = 1;
 
 % ------------------------------------------------------------------------
 % image parameters
@@ -29,15 +29,22 @@ L0_image(1,1)
 range_match_filt = range_ref_func(meta);
 Range_Compressed_Image = range_compression(L0_image, range_match_filt, meta);
 
-clear L0_image;
+
 
 az_match_filter = az_ref_func(meta);
 Azimuth_Compressed_Image = az_compression2(Range_Compressed_Image, az_match_filter, meta);
 
-clear Range_Compressed_Image;
+
 
 figure(5), colormap('gray'), imagesc(abs(Azimuth_Compressed_Image)); caxis([0 10000])
 
 H = fspecial('gaussian',[5 5],0.7);
 Y = filter2(H,abs(Azimuth_Compressed_Image'));
 figure(6), imagesc(Y'), colormap('gray'), caxis([0 10000])
+
+get_Az_Pattern(Range_Compressed_Image, meta);
+
+%antenna_pattern = get_Antenna_Pattern(L0_image);
+%ant_pat_corr = -1*(antenna_pattern);
+
+%Fixed_Range_comp_Image = antenna_pattern_correction(Range_Compressed_Image, ant_pat_corr);
